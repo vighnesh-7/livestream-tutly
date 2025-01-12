@@ -25,6 +25,7 @@ export type ParticipantMetadata = {
   hand_raised: boolean;
   invited_to_stage: boolean;
   avatar_image: string;
+  role?: "host" | "viewer";
 };
 
 export type Config = {
@@ -85,6 +86,10 @@ export type RemoveFromStageParams = {
 
 export type ErrorResponse = {
   error: string;
+};
+
+export type LowerHandParams = {
+  identity: string;
 };
 
 export function getSessionFromReq(req: Request): Session {
@@ -395,10 +400,12 @@ export class Controller {
 
     const permission = participant.permission || ({} as ParticipantPermission);
     const metadata = this.getOrCreateParticipantMetadata(participant);
-    metadata.hand_raised = true;
+    
+    // Toggle hand raised state
+    metadata.hand_raised = !metadata.hand_raised;
 
-    // If hand is raised and invited to stage, then we let the put them on stage
-    if (metadata.invited_to_stage) {
+    // If hand is raised and already invited to stage, enable publishing
+    if (metadata.hand_raised && metadata.invited_to_stage) {
       permission.canPublish = true;
     }
 
@@ -408,6 +415,52 @@ export class Controller {
       JSON.stringify(metadata),
       permission
     );
+
+    return {
+      identity: session.identity,
+      metadata,
+      permission
+    };
+  }
+
+  async lowerHand(session: Session, { identity }: LowerHandParams) {
+    const rooms = await this.roomService.listRooms([session.room_name]);
+
+    if (rooms.length === 0) {
+      throw new Error("Room does not exist");
+    }
+
+    const room = rooms[0];
+    const creator_identity = (JSON.parse(room.metadata) as RoomMetadata)
+      .creator_identity;
+
+    // Only host can lower others' hands
+    if (creator_identity !== session.identity) {
+      throw new Error("Only the host can lower others' hands");
+    }
+
+    const participant = await this.roomService.getParticipant(
+      session.room_name,
+      identity
+    );
+
+    const permission = participant.permission || ({} as ParticipantPermission);
+    const metadata = this.getOrCreateParticipantMetadata(participant);
+
+    metadata.hand_raised = false;
+
+    await this.roomService.updateParticipant(
+      session.room_name,
+      identity,
+      JSON.stringify(metadata),
+      permission
+    );
+
+    return {
+      identity,
+      metadata,
+      permission
+    };
   }
 
   getOrCreateParticipantMetadata(

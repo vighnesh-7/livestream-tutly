@@ -1,7 +1,5 @@
 "use client";
 
-import { Chat } from "@/components/chat";
-import { ReactionBar } from "@/components/reaction-bar";
 import { Spinner } from "@/components/spinner";
 import { StreamPlayer } from "@/components/stream-player";
 import { TokenContext } from "@/components/token-context";
@@ -11,7 +9,6 @@ import { LiveKitRoom } from "@livekit/components-react";
 import { ArrowRightIcon, PersonIcon } from "@radix-ui/react-icons";
 import {
   Avatar,
-  Box,
   Button,
   Card,
   Flex,
@@ -103,17 +100,7 @@ export default function WatchPage({
   return (
     <TokenContext.Provider value={authToken}>
       <LiveKitRoom serverUrl={serverUrl} token={roomToken}>
-        <Flex className="w-full h-screen">
-          <Flex direction="column" className="flex-1">
-            <Box className="flex-1 bg-gray-1">
-              <StreamPlayer />
-            </Box>
-            <ReactionBar />
-          </Flex>
-          <Box className="bg-accent-2 min-w-[280px] border-l border-accent-5">
-            <Chat />
-          </Box>
-        </Flex>
+        <StreamPlayer />
       </LiveKitRoom>
     </TokenContext.Provider>
   );
