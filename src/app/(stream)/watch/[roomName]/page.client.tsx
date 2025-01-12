@@ -72,8 +72,9 @@ export default function WatchPage({
                 />
               </TextField.Slot>
               <TextField.Input
-                placeholder="Roger Dunn"
+                placeholder="John Doe"
                 type="text"
+                onKeyDown={(e) => e.key === "Enter" && onJoin()}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
               />

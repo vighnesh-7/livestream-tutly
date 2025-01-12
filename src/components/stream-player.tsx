@@ -24,6 +24,8 @@ import { useEffect, useRef, useState } from "react";
 import { MediaDeviceSettings } from "./media-device-settings";
 import { PresenceDialog } from "./presence-dialog";
 import { useAuthToken } from "./token-context";
+import { useStreamAnalytics } from "@/hooks/use-stream-analytics";
+import { StreamAnalyticsModal } from "./stream-analytics-modal";
 
 function ConfettiCanvas() {
   const [confetti, setConfetti] = useState<Confetti>();
@@ -61,6 +63,11 @@ export function StreamPlayer({ isHost = false }) {
   const canHost =
     isHost || (localMetadata?.invited_to_stage && localMetadata?.hand_raised);
   const participants = useParticipants();
+
+
+
+const analytics = useStreamAnalytics(participants);
+  
   const showNotification = isHost
     ? participants.some((p) => {
         const metadata = (p.metadata &&
@@ -96,6 +103,7 @@ export function StreamPlayer({ isHost = false }) {
   const remoteVideoTracks = useTracks([Track.Source.Camera]).filter(
     (t) => t.participant.identity !== localParticipant.identity
   );
+  
 
   const remoteAudioTracks = useTracks([Track.Source.Microphone]).filter(
     (t) => t.participant.identity !== localParticipant.identity
@@ -221,7 +229,7 @@ export function StreamPlayer({ isHost = false }) {
             {roomName && canHost && (
               <Flex gap="2">
                 <MediaDeviceSettings />
-                {roomMetadata?.creator_identity !==
+                {roomMetadata?.creator_identity ===
                   localParticipant.identity && (
                   <Button size="1" onClick={onLeaveStage}>
                     Leave stage
@@ -239,6 +247,7 @@ export function StreamPlayer({ isHost = false }) {
                 </Text>
               </Flex>
             )}
+            <StreamAnalyticsModal analytics={analytics} />
             <PresenceDialog isHost={isHost}>
               <div className="relative">
                 {showNotification && (

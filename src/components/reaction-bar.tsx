@@ -6,10 +6,17 @@ import { useEffect, useState, useCallback } from "react";
 import { supportsScreenSharing } from '@livekit/components-core';
 import { TrackToggle } from '@livekit/components-react';
 import { Track } from 'livekit-client';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 
 
 
-export function ReactionBar() {
+export function ReactionBar({
+  isHost = false,
+}) {
   const [encoder] = useState(() => new TextEncoder());
   const { send } = useDataChannel("reactions");
   const { send: sendChat } = useChat();
@@ -81,42 +88,65 @@ export function ReactionBar() {
       align="center"
       className="border-t border-accent-5 bg-accent-3 h-[100px] text-center"
     >
-      <Tooltip content="Fire" delayDuration={0}>
-        <Button size="4" variant="outline" onClick={() => onSend("🔥")}>
-          🔥
-        </Button>
-      </Tooltip>
-      <Tooltip content="Applause">
-        <Button size="4" variant="outline" onClick={() => onSend("👏")}>
-          👏
-        </Button>
-      </Tooltip>
-      <Tooltip content="LOL">
-        <Button size="4" variant="outline" onClick={() => onSend("🤣")}>
-          🤣
-        </Button>
-      </Tooltip>
-      <Tooltip content="Love">
-        <Button size="4" variant="outline" onClick={() => onSend("❤️")}>
-          ❤️
-        </Button>
-      </Tooltip>
-      <Tooltip content="Confetti">
-        <Button size="4" variant="outline" onClick={() => onSend("🎉")}>
-          🎉
-        </Button>
-      </Tooltip>
-      <button disabled={processingRecRequest} onClick={() => toggleRoomRecording()}>
-        {isRecording ? 'Stop' : 'Start'} Recording
-      </button>
-      <TrackToggle
-          source={Track.Source.ScreenShare}
-          captureOptions={{ audio: true, selfBrowserSurface: 'include' }}
-          showIcon={true}
-          onChange={onScreenShareChange}
-        >
-          {(isScreenShareEnabled ? 'Stop screen share' : 'Share screen')}
-        </TrackToggle>
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button size="4" variant="outline">
+        Reactions
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="p-0 py-1">
+          <div className="gap-2 flex items-center justify-center p-0 cursor-pointer">
+            <Tooltip content="Fire" delayDuration={0}>
+              <div onClick={() => onSend("🔥")}>
+                🔥
+              </div>
+            </Tooltip>
+            <Tooltip content="Applause">
+              <div onClick={() => onSend("👏")}>
+                👏
+              </div>
+            </Tooltip>
+            <Tooltip content="LOL">
+              <div onClick={() => onSend("🤣")}>
+                🤣
+              </div>
+            </Tooltip>
+            <Tooltip content="Love">
+              <div onClick={() => onSend("❤️")}>
+                ❤️
+              </div>
+            </Tooltip>
+            <Tooltip content="Confetti">
+              <div onClick={() => onSend("🎉")}>
+                🎉
+              </div>
+            </Tooltip>
+          </div>
+        </PopoverContent>
+      </Popover>
+      { 
+      isHost && <div 
+      className="flex gap-2 "
+      >
+        <button disabled={processingRecRequest} 
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mx-2"
+        onClick={() => toggleRoomRecording()}>
+          {isRecording ? 'Stop' : 'Start'} Recording
+        </button>
+        {
+          browserSupportsScreenSharing &&
+          <TrackToggle
+              source={Track.Source.ScreenShare}
+              captureOptions={{ audio: true, selfBrowserSurface: 'include' }}
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mx-2 flex items-center gap-2"
+              showIcon={true}
+              onChange={onScreenShareChange}
+              >
+              {(isScreenShareEnabled ? 'Stop screen share' : 'Share screen')}
+            </TrackToggle>
+        }
+          </div>
+          }
     </Flex>
   );
 }

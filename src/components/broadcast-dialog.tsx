@@ -69,6 +69,7 @@ export function BroadcastDialog({ children }: { children: React.ReactNode }) {
             <TextField.Input
               type="text"
               placeholder="Roger Dunn"
+              onKeyDown={ (e) => e.key === "Enter" && onGoLive() }
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
