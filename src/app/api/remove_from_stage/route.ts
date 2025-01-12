@@ -12,14 +12,17 @@ export async function POST(req: Request) {
   try {
     const session = getSessionFromReq(req);
     const reqBody = await req.json();
-    await controller.removeFromStage(session, reqBody as RemoveFromStageParams);
+    const result = await controller.removeFromStage(session, reqBody as RemoveFromStageParams);
 
-    return Response.json({});
+    return Response.json({
+      success: true,
+      participant: result
+    });
   } catch (err) {
+    console.error("Error in remove_from_stage:", err);
     if (err instanceof Error) {
       return new Response(err.message, { status: 500 });
     }
-
-    return new Response(null, { status: 500 });
+    return new Response("Internal Server Error", { status: 500 });
   }
 }

@@ -1,70 +1,85 @@
-import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { BarChart, Activity, Users } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { format } from 'date-fns';
-import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from 'recharts';
-import { useStreamAnalytics } from "@/hooks/use-stream-analytics"
+"use client";
+
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { format } from "date-fns";
+import { BarChart, Users } from "lucide-react";
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from "recharts";
 
 interface StreamAnalyticsModalProps {
-  analytics: ReturnType<typeof useStreamAnalytics>;
+  analytics: any;
   roomName: string;
+  children?: React.ReactNode;
 }
 
-export function StreamAnalyticsModal({ analytics, roomName }: StreamAnalyticsModalProps) {
-  const [isOpen, setIsOpen] = useState(false);
-
+export function StreamAnalyticsModal({ analytics, roomName, children }: StreamAnalyticsModalProps) {
   if (!analytics) return null;
 
   const streamDuration = Date.now() - new Date(analytics.streamStartTime).getTime();
   const durationInMinutes = Math.floor(streamDuration / 1000 / 60);
 
-  const chartData = analytics.userCountTimeline.map(point => ({
-    time: format(new Date(point.timestamp), 'HH:mm'),
+  const chartData = analytics.userCountTimeline.map((point: any) => ({
+    time: format(new Date(point.timestamp), "HH:mm"),
     users: point.count,
   }));
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" size="icon">
-          <Activity className="h-4 w-4" />
-        </Button>
+        {children || (
+          <Button 
+            variant="secondary" 
+            size="lg" 
+            className="rounded-full w-12 h-12"
+          >
+            <BarChart className="h-5 w-5" />
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Stream Analytics - {roomName}</DialogTitle>
+          <DialogTitle className="flex items-center gap-2 text-lg font-semibold">
+            <BarChart className="h-5 w-5" />
+            Stream Analytics - {roomName}
+          </DialogTitle>
         </DialogHeader>
-        
-        <div className="grid grid-cols-3 gap-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Stream Duration</CardTitle>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+          <div className="bg-card p-4 rounded-lg border">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-medium text-muted-foreground">Duration</p>
               <BarChart className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{durationInMinutes}min</div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Peak Viewers</CardTitle>
+            </div>
+            <p className="text-2xl font-bold mt-2">{durationInMinutes} min</p>
+          </div>
+
+          <div className="bg-card p-4 rounded-lg border">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-medium text-muted-foreground">Peak Viewers</p>
               <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{analytics.peakConcurrentUsers}</div>
-            </CardContent>
-          </Card>
+            </div>
+            <p className="text-2xl font-bold mt-2">{analytics.peakConcurrentUsers}</p>
+          </div>
+
+          <div className="bg-card p-4 rounded-lg border">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-medium text-muted-foreground">Total Messages</p>
+              <BarChart className="h-4 w-4 text-muted-foreground" />
+            </div>
+            <p className="text-2xl font-bold mt-2">{analytics.totalMessages}</p>
+          </div>
         </div>
 
-        <Card className="mt-4">
-          <CardHeader>
-            <CardTitle>Viewer Timeline</CardTitle>
-          </CardHeader>
-          <CardContent className="h-[200px]">
+        <div className="mt-8 bg-card p-4 rounded-lg border">
+          <p className="text-sm font-medium text-muted-foreground mb-4">Viewer Count</p>
+          <div className="h-[200px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData}>
                 <XAxis dataKey="time" />
@@ -73,39 +88,36 @@ export function StreamAnalyticsModal({ analytics, roomName }: StreamAnalyticsMod
                 <Area
                   type="monotone"
                   dataKey="users"
-                  stroke="#2563eb"
-                  fill="#3b82f6"
-                  fillOpacity={0.2}
+                  stroke="hsl(var(--primary))"
+                  fill="hsl(var(--primary)/.2)"
                 />
               </AreaChart>
             </ResponsiveContainer>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <Card className="mt-4">
-          <CardHeader>
-            <CardTitle>Participant Activity</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div className="mt-8">
+          <p className="text-sm font-medium text-muted-foreground mb-4">Participants</p>
+          <div className="rounded-lg border">
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead>Minutes Watched</TableHead>
                   <TableHead>Sessions</TableHead>
-                  <TableHead>First seen</TableHead>
-                  <TableHead>Last seen</TableHead>
+                  <TableHead>Join Time</TableHead>
+                  <TableHead>Last Seen</TableHead>
                   <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {Object.values(analytics.participants).map((participant) => (
+                {Object.values(analytics.participants).map((participant: any) => (
                   <TableRow key={participant.identity}>
                     <TableCell className="font-medium">{participant.identity}</TableCell>
                     <TableCell>{Math.round(participant.minutesWatched)}</TableCell>
                     <TableCell>{participant.sessions.length}</TableCell>
-                    <TableCell>{format(new Date(participant.joinTime), 'hh:mm a')}</TableCell>
-                    <TableCell>{format(new Date(participant.lastSeenAt), 'hh:mm a')}</TableCell>
+                    <TableCell>{format(new Date(participant.joinTime), "hh:mm a")}</TableCell>
+                    <TableCell>{format(new Date(participant.lastSeenAt), "hh:mm a")}</TableCell>
                     <TableCell>
                       <div className="flex gap-2">
                         {participant.audioEnabled && (
@@ -129,8 +141,8 @@ export function StreamAnalyticsModal({ analytics, roomName }: StreamAnalyticsMod
                 ))}
               </TableBody>
             </Table>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );
