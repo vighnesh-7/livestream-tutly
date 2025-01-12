@@ -55,7 +55,8 @@ export function StreamPlayer({ isHost = false }) {
   const [localVideoTrack, setLocalVideoTrack] = useState<LocalVideoTrack>();
   const localVideoEl = useRef<HTMLVideoElement>(null);
 
-  const { metadata, name: roomName, state: roomState } = useRoomContext();
+  const roomContext = useRoomContext();
+  const { metadata, name: roomName, state: roomState } = roomContext;
   const roomMetadata = (metadata && JSON.parse(metadata)) as RoomMetadata;
   const { localParticipant } = useLocalParticipant();
   const localMetadata = (localParticipant.metadata &&
@@ -64,9 +65,8 @@ export function StreamPlayer({ isHost = false }) {
     isHost || (localMetadata?.invited_to_stage && localMetadata?.hand_raised);
   const participants = useParticipants();
 
+  const analytics = useStreamAnalytics(participants,roomName);
 
-
-const analytics = useStreamAnalytics(participants);
   
   const showNotification = isHost
     ? participants.some((p) => {
@@ -247,7 +247,7 @@ const analytics = useStreamAnalytics(participants);
                 </Text>
               </Flex>
             )}
-            <StreamAnalyticsModal analytics={analytics} />
+            <StreamAnalyticsModal analytics={analytics} roomName={roomContext.name} />
             <PresenceDialog isHost={isHost}>
               <div className="relative">
                 {showNotification && (
